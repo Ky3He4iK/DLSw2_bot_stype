@@ -1,18 +1,19 @@
 from telegram_bot.model import StyleTransferModel
 from io import BytesIO
+import telegram.files.inputmedia
 
 _model = StyleTransferModel()
 
 
 def _get_images(bot, img_id, out):
-    bot.download(img_id, out=out)
+    bot.get_file(img_id).download(out=out)
 
 
 def _upload_img(bot, chat_id, output):
     output_stream = BytesIO()
     output.save(output_stream, format='PNG')
     output_stream.seek(0)
-    bot.send_photo(chat_id, photo=output_stream)
+    bot.send_photo(chat_id=chat_id, photo=output_stream)
 
 
 def styling(bot, img_content_id, img_style_id, chat_id):
@@ -31,7 +32,7 @@ def styling(bot, img_content_id, img_style_id, chat_id):
     # todo
 
     # теперь отправим назад фото
-    _upload_img(bot, output, chat_id)
+    _upload_img(bot, chat_id, output)
     print("Done!")
 
 
