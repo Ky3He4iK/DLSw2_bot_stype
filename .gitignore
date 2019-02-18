@@ -1,4 +1,4 @@
-telegram_bot/token
+telegram_bot/bot_token.py
 Guide.ipynb 
 **/__pycache__
 **/.idea
