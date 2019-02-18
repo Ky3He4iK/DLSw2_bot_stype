@@ -1,7 +1,7 @@
-**/.ipynb_checkpoints 
-telegram_bot/telegram_token.py 
+telegram_bot/token
 Guide.ipynb 
-**/.idea **/__pycache__
-**/LEGO brick images
+**/__pycache__
 **/.idea
 **/.ipynb_checkpoints
+model
+venv

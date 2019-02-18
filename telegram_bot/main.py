@@ -1,13 +1,18 @@
-from model import StyleTransferModel
-from telegram_token import token
+from telegram_bot.model import StyleTransferModel
+import telegram_bot.listener
+from telegram_bot.config import Config
+
 import numpy as np
 from PIL import Image
 from io import BytesIO
 
+from telegram.ext import Updater, MessageHandler, Filters
+import logging
+
 # В бейзлайне пример того, как мы можем обрабатывать две картинки, пришедшие от пользователя.
 # При реалиазации первого алгоритма это Вам не понадобится, так что можете убрать загрузку второй картинки.
 # Если решите делать модель, переносящую любой стиль, то просто вернете код)
-
+# Styling bot
 model = StyleTransferModel()
 first_image_file = {}
 
@@ -45,10 +50,7 @@ def send_prediction_on_photo(bot, update):
         first_image_file[chat_id] = image_file
 
 
-if __name__ == '__main__':
-    from telegram.ext import Updater, MessageHandler, Filters
-    import logging
-
+def main():
     # Включим самый базовый логгинг, чтобы видеть сообщения об ошибках
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -56,9 +58,14 @@ if __name__ == '__main__':
     # используем прокси, так как без него у меня ничего не работало.
     # если есть проблемы с подключением, то попробуйте убрать прокси или сменить на другой
     # проекси ищется в гугле как "socks4 proxy"
-    updater = Updater(token=token,  request_kwargs={'proxy_url': 'socks4://168.195.171.42:44880'})
+    updater = Updater(token=open("telegram_bot/token").read(),
+                      request_kwargs={'proxy_url': 'socks4://168.195.171.42:44880'})
 
     # В реализации большого бота скорее всего будет удобнее использовать Conversation Handler
     # вместо назначения handler'ов таким способом
     updater.dispatcher.add_handler(MessageHandler(Filters.photo, send_prediction_on_photo))
     updater.start_polling()
+
+
+if __name__ == '__main__':
+    main()
