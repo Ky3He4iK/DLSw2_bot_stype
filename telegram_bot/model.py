@@ -42,57 +42,49 @@ class StyleTransferModel:
         # перенести функцию run_style_transfer (не забудьте вынести инициализацию, которая
         # проводится один раз в конструктор.
 
-        # Сейчас этот метод просто возвращает не измененную content картинку
-        # Для наглядности мы сначала переводим ее в тензор, а потом обратно
+        content_img = self.transformer(content_img)
+        style_img = self.transformer(style_img)
         input_img = content_img.clone()
         output = self.run_style_transfer(self.cnn, self.cnn_normalization_mean, self.cnn_normalization_std, content_img,
-                                style_img, input_img)
+                                         style_img, input_img)
         return to_image(output)
-
 
     def run_style_transfer(self, cnn, normalization_mean, normalization_std,
                            content_img, style_img, input_img, num_steps=1,
                            style_weight=1000000, content_weight=1):
-        """Run the style transfer."""
-        print('Building the style transfer model..')
+
+        def closure():
+            # correct the values of updated input image
+            input_img.data.clamp_(0, 1)
+
+            optimizer.zero_grad()
+            model(input_img)
+            style_score = 0
+            content_score = 0
+
+            for sl in style_losses:
+                style_score += sl.loss
+            for cl in content_losses:
+                content_score += cl.loss
+
+            style_score *= style_weight
+            content_score *= content_weight
+
+            loss = style_score + content_score
+            loss.backward()
+
+            run[0] += 1
+
+            return style_score + content_score
+
         model, style_losses, content_losses = self.get_style_model_and_losses(cnn,
                                                                               normalization_mean, normalization_std,
                                                                               style_img, content_img)
         optimizer = get_input_optimizer(input_img)
 
-        print('Optimizing..')
         run = [0]
         while run[0] <= num_steps:
-
-            def closure():
-                # correct the values of updated input image
-                input_img.data.clamp_(0, 1)
-
-                optimizer.zero_grad()
-                model(input_img)
-                style_score = 0
-                content_score = 0
-
-                for sl in style_losses:
-                    style_score += sl.loss
-                for cl in content_losses:
-                    content_score += cl.loss
-
-                style_score *= style_weight
-                content_score *= content_weight
-
-                loss = style_score + content_score
-                loss.backward()
-
-                run[0] += 1
-                print("run {}:".format(run))
-                print('Style Loss : {:4f} Content Loss: {:4f}'.format(
-                    style_score.item(), content_score.item()))
-                print()
-
-                return style_score + content_score
-
-            print('Step')
+            print('Step', run)
             optimizer.step(closure)
 
         # a last correction...

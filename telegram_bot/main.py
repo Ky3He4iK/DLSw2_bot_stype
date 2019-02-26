@@ -142,8 +142,9 @@ def main():
     _updater.dispatcher.add_handler(MessageHandler(Filters.photo, send_prediction_on_photo))
     _updater.dispatcher.add_handler(MessageHandler(Filters.command, cmd_handler))
     _updater.dispatcher.add_handler(CallbackQueryHandler(handle_inline_kb))
-    _updater.start_polling()
 
+    print("To stop me just send `Stop` to localhost:4717")
+    _updater.start_polling()
 
 
 if __name__ == '__main__':
