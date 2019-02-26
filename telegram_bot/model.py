@@ -53,7 +53,7 @@ class StyleTransferModel:
                            content_img, style_img, input_img, num_steps=1,
                            style_weight=1000000, content_weight=1):
 
-        def closure():
+        def closure():  # python's lambdas have limitations
             # correct the values of updated input image
             input_img.data.clamp_(0, 1)
 
@@ -90,7 +90,7 @@ class StyleTransferModel:
         # a last correction...
         input_img.data.clamp_(0, 1)
 
-        return input_img
+        return input_img.detach()
 
     def get_style_model_and_losses(self, cnn, normalization_mean, normalization_std,
                                    style_img, content_img,

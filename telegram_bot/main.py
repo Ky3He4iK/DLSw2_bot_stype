@@ -37,11 +37,11 @@ def worker(bot, queue):
 
         if not queue.empty():
             # Получаем сообщение с картинкой из очереди и обрабатываем ее
-            try:
-                chat_id, img_content, img_style = queue.get()
-                image_processing.styling(bot, img_content, img_style, chat_id)
-            except BaseException as e:
-                print(e, e.__cause__, e.args)
+            #try:
+            chat_id, img_content, img_style = queue.get()
+            image_processing.styling(bot, img_content, img_style, chat_id)
+            #except BaseException as e:
+            #    print(e, e.__cause__, e.args)
         sleep(3)
     print("Stopping. Processing last photos from queue")
     while not queue.empty():

@@ -7,7 +7,7 @@ import torch.onnx
 
 
 def to_image(output):
-    misc.toimage(output[0])
+    return misc.toimage(output[0])
 
 
 def get_input_optimizer(input_img):
