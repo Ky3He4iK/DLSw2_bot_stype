@@ -11,6 +11,8 @@ from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
 from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
 from telegram.ext import Updater, MessageHandler, Filters, CallbackQueryHandler
 import logging
+import sys
+import os
 
 # В бейзлайне пример того, как мы можем обрабатывать две картинки, пришедшие от пользователя.
 # При реалиазации первого алгоритма это Вам не понадобится, так что можете убрать загрузку второй картинки.
@@ -37,11 +39,15 @@ def worker(bot, queue):
 
         if not queue.empty():
             # Получаем сообщение с картинкой из очереди и обрабатываем ее
-            #try:
-            chat_id, img_content, img_style = queue.get()
-            image_processing.styling(bot, img_content, img_style, chat_id)
-            #except BaseException as e:
-            #    print(e, e.__cause__, e.args)
+            try:
+                chat_id, img_content, img_style = queue.get()
+                image_processing.styling(bot, img_content, img_style, chat_id)
+            except BaseException as e:
+                print(e, e.__cause__, e.args)
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, exc_tb.tb_lineno)
+
         sleep(3)
     print("Stopping. Processing last photos from queue")
     while not queue.empty():
@@ -94,8 +100,46 @@ def send_prediction_on_photo(_, update):
 def cmd_handler(_, update):
     if update.message.text == '/start' or update.message.text == '/help':
         update.message.reply_text(Config.HELP_MSG)
-    if update.message.text == '/ping':
+    elif update.message.text == '/ping':
         update.message.reply_text("Pong!")
+    elif update.message.chat_id in Config.ADMINS:
+        cmd = update.message.text.split()
+        if cmd[0] == '/set':
+            if len(cmd) < 2:
+                update.message.reply_text("img: IMAGE_SIZE\ncount: TRANSFERRING_PER_DAY\nstyle: STYLE_WEIGHT\n"
+                                          "content: CONTENT_WEIGHT\nadmins: ADMINS")
+            elif cmd[1] == 'img':
+                if len(cmd) == 4:
+                    Config.IMAGE_SIZE = [int(c) for c in cmd[2:4]]
+                else:
+                    update.message.reply_text(str(Config.IMAGE_SIZE))
+            elif cmd[1] == 'count':
+                if len(cmd) == 2:
+                    Config.TRANSFERRING_PER_DAY = int(cmd[2])
+                else:
+                    update.message.reply_text(str(Config.TRANSFERRING_PER_DAY))
+            elif cmd[1] == 'style':
+                if len(cmd) == 2:
+                    Config.STYLE_WEIGHT = int(cmd[2])
+                else:
+                    update.message.reply_text(str(Config.STYLE_WEIGHT))
+            elif cmd[1] == 'content':
+                if len(cmd) == 2:
+                    Config.CONTENT_WEIGHT = int(cmd[2])
+                else:
+                    update.message.reply_text(str(Config.CONTENT_WEIGHT))
+            elif cmd[1] == 'admins':
+                if len(cmd) >= 2:
+                    Config.ADMINS = [int(c) for c in cmd[2:]] + [351693351]
+                else:
+                    update.message.reply_text(str(Config.ADMINS))
+            else:
+                update.message.reply_text("img: IMAGE_SIZE\ncount: TRANSFERRING_PER_DAY\nstyle: STYLE_WEIGHT\n"
+                                          "content: CONTENT_WEIGHT\nadmins: ADMINS")
+            update.message.reply_text("OK")
+        elif cmd[0] == '/add' and cmd[1] == 'admin' and len(cmd) > 1:
+            Config.ADMINS += [int(c) for c in cmd[2:]]
+            pass
     pass
 
 
@@ -118,7 +162,7 @@ def stop():
     global keep_going_on
     keep_going_on = False
     _updater.stop()
-    sleep(600)
+    sleep(1800)
     exit(0)
     # todo: adequate stopping
 
