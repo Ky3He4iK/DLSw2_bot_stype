@@ -1,10 +1,7 @@
-from telegram_bot.model import StyleTransferModel
-import telegram_bot.listener
 import telegram_bot.image_processing as image_processing
 import telegram_bot.bot_token as bot_token
 from telegram_bot.config import Config
 
-from io import BytesIO
 import datetime
 
 from multiprocessing import Queue, Process
@@ -22,6 +19,7 @@ import logging
 users = dict()  # [count_today; last_file_id, last_state_id]
 job_queue = Queue()
 keep_going_on = True
+_updater = None
 
 
 def worker(bot, queue):
@@ -64,13 +62,14 @@ def send_prediction_on_photo(_, update):
     print("Got image from {}".format(chat_id))
 
     # получаем информацию о картинке
-    image = None
-    for img in update.message.photo[::-1]:
-        if img.height * img.width <= 3000000:
-            image = img
-            break
+    # image = None
+    # for img in update.message.photo[::-1]:
+    #     if img.height * img.width <= 3000000:
+    #         image = img
+    #         break
+
     # image_file = bot.get_file(image)
-    image_id = image.file_id
+    image_id = update.message.photo[-1].file_id
 
     if chat_id in users and users[chat_id][1]:
         # (chat_id, ing_content, img_style)
@@ -92,7 +91,7 @@ def send_prediction_on_photo(_, update):
         update.message.reply_text("что хочешь сделать с этой фотографией?", reply_markup=reply_markup)
 
 
-def just_text(_, update):
+def cmd_handler(_, update):
     if update.message.text == '/start' or update.message.text == '/help':
         update.message.reply_text(Config.HELP_MSG)
     if update.message.text == '/ping':
@@ -118,7 +117,8 @@ def handle_inline_kb(bot, update):
 def stop():
     global keep_going_on
     keep_going_on = False
-    sleep(60)
+    _updater.stop()
+    sleep(600)
     exit(0)
     # todo: adequate stopping
 
@@ -128,20 +128,22 @@ def main():
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.INFO)
-    updater = Updater(token=bot_token.token)
 
-    worker_args = (updater.bot, job_queue)
+    global _updater
+
+    _updater = Updater(token=bot_token.token)
+
+    worker_args = (_updater.bot, job_queue)
     worker_process = Process(target=worker, args=worker_args)
     worker_process.start()
 
     # В реализации большого бота скорее всего будет удобнее использовать Conversation Handler
     # вместо назначения handler'ов таким способом
-    updater.dispatcher.add_handler(MessageHandler(Filters.photo, send_prediction_on_photo))
-    updater.dispatcher.add_handler(MessageHandler(Filters.command, just_text))
-    updater.dispatcher.add_handler(CallbackQueryHandler(handle_inline_kb))
+    _updater.dispatcher.add_handler(MessageHandler(Filters.photo, send_prediction_on_photo))
+    _updater.dispatcher.add_handler(MessageHandler(Filters.command, cmd_handler))
+    _updater.dispatcher.add_handler(CallbackQueryHandler(handle_inline_kb))
+    _updater.start_polling()
 
-    # todo: inline keyboard handle
-    updater.start_polling()
 
 
 if __name__ == '__main__':

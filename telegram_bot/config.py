@@ -9,4 +9,7 @@ class Config:
 Так как сервер, на котором я работаю, слабый, Я смогу обработать не больше {} переделываний в сутки на аккаунт
 
 Итак, загрузи изображение""".format(TRANSFERRING_PER_DAY)
+    IMAGE_SIZE = (512, 521)
+    CONTENT_WEIGHT = 1
+    STYLE_WEIGHT = 1000000
     pass
