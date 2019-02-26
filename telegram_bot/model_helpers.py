@@ -5,6 +5,7 @@ from scipy import misc
 import torch
 import torch.onnx
 from torchvision import transforms
+import copy
 
 _loader = transforms.Compose([
     transforms.ToTensor()
@@ -19,7 +20,7 @@ style_layers_default = ('conv_1', 'conv_2', 'conv_3', 'conv_4', 'conv_5')
 
 
 def transformer(img):
-    return loader(img).unsqueeze(0)
+    return _loader(img).unsqueeze(0)
 
 
 def get_style_model_and_losses(cnn, normalization_mean, normalization_std,

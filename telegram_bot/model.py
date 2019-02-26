@@ -72,6 +72,7 @@ class StyleTransferModel:
             optimizer.step(closure)
 
         # a last correction...
+        print("{} steps".format(run[0]))
         input_img.data.clamp_(0, 1)
 
         return input_img.detach()
