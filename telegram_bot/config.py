@@ -11,7 +11,7 @@ class Config:
 Итак, загрузи изображение""".format(TRANSFERRING_PER_DAY)
     IMAGE_SIZE = (512, 521)
     CONTENT_WEIGHT = 1
-    STYLE_WEIGHT = 1000000000
+    STYLE_WEIGHT = 10000000000
     ADMINS = [351693351]
     STEPS = 25
     pass

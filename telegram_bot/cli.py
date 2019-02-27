@@ -15,8 +15,7 @@ def fix_img(img):
     return img.resize(Config.IMAGE_SIZE, Image.ANTIALIAS)
 
 
-def main():
-    _, content, style = sys.argv
+def process(content, style):
     content_img = Image.open(content)
     content_size = content_img.size
     content_img = fix_img(content_img)
@@ -33,4 +32,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    process(*sys.argv[1:3])
