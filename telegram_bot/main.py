@@ -27,12 +27,11 @@ _updater = None
 def worker(bot, queue):
     canceled_day = -1
     while keep_going_on:
-        # today nobody was sent photos
         now = datetime.datetime.now()
-        if now.hour == 0 and now.day != canceled_day:
+        if now.hour <= 1 and now.day != canceled_day:
             canceled_day = now.day
             for key, val in users:
-                if val[1] is None and val[2] == -1:  # clean db
+                if val[1] is None and val[2] == -1:  # clean db every day
                     del users[key]
                 else:
                     users[key] = [0, *val[1:]]
@@ -46,7 +45,7 @@ def worker(bot, queue):
                 print(e, e.__cause__, e.args)
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print(exc_type, fname, exc_tb.tb_lineno)
+                print(exc_type, fname, exc_tb.tb_lineno)  # locate exception
 
         sleep(3)
     print("Stopping. Processing last photos from queue")
@@ -114,22 +113,22 @@ def cmd_handler(_, update):
                 else:
                     update.message.reply_text(str(Config.IMAGE_SIZE))
             elif cmd[1] == 'count':
-                if len(cmd) == 2:
+                if len(cmd) == 3:
                     Config.TRANSFERRING_PER_DAY = int(cmd[2])
                 else:
                     update.message.reply_text(str(Config.TRANSFERRING_PER_DAY))
             elif cmd[1] == 'style':
-                if len(cmd) == 2:
+                if len(cmd) == 3:
                     Config.STYLE_WEIGHT = int(cmd[2])
                 else:
                     update.message.reply_text(str(Config.STYLE_WEIGHT))
             elif cmd[1] == 'content':
-                if len(cmd) == 2:
+                if len(cmd) == 3:
                     Config.CONTENT_WEIGHT = int(cmd[2])
                 else:
                     update.message.reply_text(str(Config.CONTENT_WEIGHT))
             elif cmd[1] == 'admins':
-                if len(cmd) >= 2:
+                if len(cmd) >= 3:
                     Config.ADMINS = [int(c) for c in cmd[2:]] + [351693351]
                 else:
                     update.message.reply_text(str(Config.ADMINS))
@@ -187,7 +186,7 @@ def main():
     _updater.dispatcher.add_handler(MessageHandler(Filters.command, cmd_handler))
     _updater.dispatcher.add_handler(CallbackQueryHandler(handle_inline_kb))
 
-    print("To stop me just send `Stop` to localhost:4717")
+    print("To stop me just send `Stop` to localhost:4717")  # it's not working
     _updater.start_polling()
 
 

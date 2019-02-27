@@ -1,5 +1,5 @@
-from telegram_bot.model_helpers import *
-from telegram_bot.config import Config
+from model_helpers import *
+from config import Config
 import torch
 import torch.onnx
 from torchvision import models
@@ -30,8 +30,8 @@ class StyleTransferModel:
         style_img = transformer(style_img)
         input_img = content_img.clone()
         output = self._run_style_transfer(self.cnn, cnn_normalization_mean, cnn_normalization_std, content_img,
-                                          style_img, input_img, style_weight=Config.STYLE_WEIGHT,
-                                          content_weight=Config.CONTENT_WEIGHT)
+                                          style_img, input_img, Config.STEPS, Config.STYLE_WEIGHT,
+                                          Config.CONTENT_WEIGHT)
         return to_image(output)
 
     def _run_style_transfer(self, cnn, normalization_mean, normalization_std,
